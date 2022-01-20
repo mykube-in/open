@@ -12,3 +12,13 @@ https://docs.microsoft.com/en-us/azure/azure-resource-manager/bicep/overview?tab
 
 Azure Events Video and Presentations:
 https://www.integrationusergroup.com/past-events/
+
+BEC - Logic App patamers file 
+https://github.com/Azure/logicapps/blob/master/github-sample/.github/workflows/logicapp_deploy.yml
+
+
+BEC - read directly from keyvault. 
+@Microsoft.KeyVault(SecretUri=https://myvault.vault.azure.net/secrets/mysecret/)
+OR
+@Microsoft.KeyVault(VaultName=myvault;SecretName=mysecret)
+https://docs.microsoft.com/en-us/azure/app-service/app-service-key-vault-references#:~:text=Key%2520Vault%2520references%2520can%2520be%2520used%2520as%2520values,the%2520reference%2520as%2520the%2520value%2520of%2520the%2520setting.
