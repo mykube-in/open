@@ -67,5 +67,32 @@ Deployment:
             deploy:
               steps:
                 - download: none # setting to none to avoid downloading the artifact.
-                
 Note: Deleting a pipeline run will result in the deletion of all Artifacts associated with that run.
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+INTEGRATION ACCOUNT:
+--------------------
+https://docs.microsoft.com/en-us/azure/logic-apps/logic-apps-enterprise-integration-create-integration-account?tabs=azure-cli
