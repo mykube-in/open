@@ -97,6 +97,12 @@ INTEGRATION ACCOUNT:
 --------------------
 https://docs.microsoft.com/en-us/azure/logic-apps/logic-apps-enterprise-integration-create-integration-account?tabs=azure-cli
 
+Potral Search > Integration Account (to create and manage integration account)
+MAPS in integration account are of type XSLT and Liquid. (We used liquid in project). Liquid map can be json and XML map. 
+Now you can open Logic APP > Workflow settings > Integration Account dropdown and select your logic APP.This will connected you logic app and Integration account. 
+
+
+
 amit@host:~$ az logic integration-account show --name name-of-ia --resource-group rg-name
 Command group 'logic' is in preview and under development. Reference and support levels: https://aka.ms/CLI_refstatus
 {
