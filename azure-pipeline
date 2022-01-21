@@ -124,6 +124,7 @@ LOGIC APP and LOGIC APP Standard:
 Logic APP need integration account , where as Standard LOGIC APP does not need integration account.
 LOGIC APP can have one workflow , where as  single Logic App (infra), which contains multiple workflows (app).
 Note: Initially when we started project we have number of logic app consumption as there were number of apps for ibound and bound connections , when we decid to use stadard logic app We created only one logic app with all the workflows in it.
+The Consumption resource type runs in the multi-tenant Azure Logic Apps or integration service environment, while the Standard resource type runs in single-tenant Azure Logic Apps environment.A single Standard logic app can have multiple stateful and stateless workflows.
 
 
 
