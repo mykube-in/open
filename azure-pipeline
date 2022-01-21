@@ -96,7 +96,7 @@ Note: Deleting a pipeline run will result in the deletion of all Artifacts assoc
 INTEGRATION ACCOUNT:
 --------------------
 https://docs.microsoft.com/en-us/azure/logic-apps/logic-apps-enterprise-integration-create-integration-account?tabs=azure-cli
-
+https://biztalktechie.com/integration-magic-end-to-end-scenario/ (good website for logic app biztalktechie.com you can pick example schema maps for pratical)
 Potral Search > Integration Account (to create and manage integration account)
 MAPS in integration account are of type XSLT and Liquid. (We used liquid in project). Liquid map can be json and XML map. 
 Now you can open Logic APP > Workflow settings > Integration Account dropdown and select your logic APP.This will connected you logic app and Integration account. 
