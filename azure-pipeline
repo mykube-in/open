@@ -96,3 +96,23 @@ Note: Deleting a pipeline run will result in the deletion of all Artifacts assoc
 INTEGRATION ACCOUNT:
 --------------------
 https://docs.microsoft.com/en-us/azure/logic-apps/logic-apps-enterprise-integration-create-integration-account?tabs=azure-cli
+
+amit@host:~$ az logic integration-account show --name name-of-ia --resource-group rg-name
+Command group 'logic' is in preview and under development. Reference and support levels: https://aka.ms/CLI_refstatus
+{
+  "id": "/subscriptions/XXXXXXXXXXXXXXXXXXXXX/resourceGroups/rg-name/providers/Microsoft.Logic/integrationAccounts/name-of-ia",
+  "integrationServiceEnvironment": null,
+  "location": "eastus",
+  "name": "name-of-ia",
+  "resourceGroup": "rg-name",
+  "sku": {
+    "name": "Basic"
+  },
+  "state": "Enabled",
+  "tags": {},
+  "type": "Microsoft.Logic/integrationAccounts"
+}
+amit@Azure:~$
+
+
+
