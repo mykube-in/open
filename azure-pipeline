@@ -120,5 +120,8 @@ Command group 'logic' is in preview and under development. Reference and support
 }
 amit@Azure:~$
 
+LOGIC APP and LOGIC APP Standard:
+Logic APP need integration account , where as Standard LOGIC APP does not need integration account.
+LOGIC APP can have one workflow , where as  single Logic App (infra), which contains multiple workflows (app).
 
 
