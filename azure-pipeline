@@ -38,6 +38,34 @@ If your pipeline does not have path filters, it will be triggered even if there 
 
 
 
+Deployment and Job:
+Job and stage names cannot contain keywords (example: deployment).
+Each job in a stage must have a unique name
+A deployment job and a traditional job can exist in the same stage.
+A deployment job doesn't automatically clone the source repo. You can checkout the source repo within your job with checkout: self. Deployment jobs only support one checkout step.
 
+TraditionalJob - then you have to manually download the artifact, where as it happens automaticlly in Deployment.  
+          - task: DownloadBuildArtifacts@0
+            displayName: 'download the artifact'
+            inputs:
+              buildType: 'current'
+              artifactName: 'Drop'
+              downloadPath: '$(System.ArtifactsDirectory)'
+By default, files are downloaded to $(Pipeline.Workspace). If an artifact name was not specified, a subdirectory will be created for each downloaded artifact.
 
-
+Deployment:
+  - stage: 'postprdApproval'
+    dependsOn: prdDeployStage
+    condition: and(succeeded('prdDeployStage'), contains(variables['Build.SourceBranch'],'refs/heads/release/'))
+    displayName: 'post-prd-Approval'
+    jobs: 
+      - deployment: postprdApproval
+        environment: prd-post
+        displayName: 'post-prd-Approval'
+        strategy:
+          runOnce:
+            deploy:
+              steps:
+                - download: none # setting to none to avoid downloading the artifact.
+                
+Note: Deleting a pipeline run will result in the deletion of all Artifacts associated with that run.
