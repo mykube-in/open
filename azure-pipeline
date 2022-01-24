@@ -152,18 +152,7 @@ https://shopify.github.io/liquid/
 
 
 
-Installing Python on Selfhosted devops agent server.
-----------------------------------------------------
+Forcing Branch not to be deleted.
+In VSTS Branches Tab -> click … button for dev branch -> Branch security -> change Force push (rewrite history, delete branches and tags) as Deny for the users and groups -> Save changes
 
-
-1. sudo apt install build-essential zlib1g-dev libncurses5-dev libgdbm-dev libnss3-dev libssl-dev libreadline-dev libffi-dev
-2. wget https://www.python.org/ftp/python/3.7.5/Python-3.7.5.tgz
-3. tar xvf Python-3.7.5.tgz
-4. cd /tmp/Python-3.7.5
-./configure --prefix=/home/unix/myagent01/_work/_tool/Python/3.7.5/x64 --enable-optimizations
-Note: where echo "$AGENT_TOOLSDIRECTORY" is /home/unix/myagent01/_work/_tool/
-5. make
-6. make install
-7. cd /home/unix/myagent01/_work/_tool/Python/3.7.5
-8. touch x64.complete
 
