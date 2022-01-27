@@ -153,6 +153,15 @@ https://shopify.github.io/liquid/
 
 
 Forcing Branch not to be deleted.
+---------------------------------
 In VSTS Branches Tab -> click … button for dev branch -> Branch security -> change Force push (rewrite history, delete branches and tags) as Deny for the users and groups -> Save changes
 
+
+
+
+SPN:for connection between devops and portal.
+--------------------------------------------
+az ad sp create-for-rbac --name SPN-devops --skip-assignment
+GUI > assign SPN-devops readonly access to subscription.(This is minimum access required to create connection from Devops to Portal using SPN)
+To create connection from Azure Portal to Devops Portal , We need to assign minimum ReadOnly access at subscription level and If we want to make changes to resource or create resource in RG , then we need to assign contributor role at RG level.
 
