@@ -1,1 +1,21 @@
+1. Install IntelliJ https://www.jetbrains.com/idea/download/#section=windows
+2. Open IntellJ and create new blank project by selecting Blank folder (D:\LenovoWorkspace-Intellij) , This will create a file D:\LenovoWorkspace-Intellij\LenovoWorkspace-Intellij.iml
+3. Right Click and Create new directory D:\LenovoWorkspace-Intellij\ArmTemplates\QuickStart
+4. install Plugin (The Azure Toolkit) (using CTRL + ALT + s key > select plugins)
+5. AzureExplorer > Login and login to azure account.
+6. download template 
+https://github.com/Azure/azure-templates/blob/master/quickstarts/microsoft.storage/storage-account-create/azuredeploy.json 
+   into D:\LenovoWorkspace-Intellij\ArmTemplates\QuickStart
+   and parameter 
+https://github.com/Azure/azure-quickstart-templates/blob/master/quickstarts/microsoft.storage/storage-account-create/azuredeploy.parameters.json
+   into D:\LenovoWorkspace-Intellij\ArmTemplates\QuickStart
+[unix@AMITSUNEJA QuickStart]$  wget https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/quickstarts/microsoft.storage/storage-account-create/azuredeploy.parameters.json
+[unix@AMITSUNEJA QuickStart]$  wget https://raw.githubusercontent.com/Azure/azure-quickstart-templates/master/quickstarts/microsoft.storage/storage-account-create/azuredeploy.json
+[unix@AMITSUNEJA QuickStart]$  ls -ltr
+total 4
+-rw-rw-r-- 1 unix unix  152 Jan 30 17:05 azuredeploy.parameters.json
+-rw-rw-r-- 1 unix unix 1739 Jan 30 17:06 azuredeploy.json
+[unix@AMITSUNEJA QuickStart]$
+
+
 
