@@ -17,5 +17,15 @@ total 4
 -rw-rw-r-- 1 unix unix 1739 Jan 30 17:06 azuredeploy.json
 [unix@AMITSUNEJA QuickStart]$
 
+7. AzureExplorer > Resource Manager > Create 
+Deployment Name: <FILL IT>
+SUBSCRIPTION > Select From Drop Down
+Resource Group > Select New > Name arm-remplate-rg
+Resource Template > D:\LenovoWorkspace-Intellij\ArmTemplates\QuickStart\azuredeploy.json
+Resource Parameters > D:\LenovoWorkspace-Intellij\ArmTemplates\QuickStart\azuredeploy.parameters.json
+ok
+
+
+
 
 
