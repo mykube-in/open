@@ -1,0 +1,5 @@
+https://www.drewlearnscloud.blog/lab1 ,2 , 3
+
+https://www.drewlearnscloud.blog/azure-security1
+
+https://www.drewlearnscloud.blog/cloud-shell
