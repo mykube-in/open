@@ -1,0 +1,2 @@
+aws resourcegroupstaggingapi get-resources  | jq '.ResourceTagMappingList[].ResourceARN'
+aws resourcegroupstaggingapi get-resources --tag-filters Key=Environment,Values=Production --tags-per-page 100
