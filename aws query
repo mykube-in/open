@@ -1,3 +1,23 @@
+{
+  "ResourceTagMappingList": [
+
+       {
+            "ResourceARN": "arn:aws:codecommit:us-east-1:917237400098:first-repo",
+            "Tags": [
+                {
+                    "Key": "project",
+                    "Value": "AwsDevops"
+                },
+                {
+                    "Key": "language",
+                    "Value": "terraform"
+                }
+            ]
+       }HERE WE WILL HAVE COMMA INCASE WE HAVE MORE RESOURCES. 
+  ]
+}
+
+##################################################################################################################################################################################
 aws resourcegroupstaggingapi get-resources  | jq '.ResourceTagMappingList[].ResourceARN'
-aws resourcegroupstaggingapi get-resources --tag-filters Key=Environment,Values=Production --tags-per-page 100
+aws resourcegroupstaggingapi get-resources --tag-filters Key=project,Values=AwsDevops
 aws resourcegroupstaggingapi get-resources  | jq -c '.ResourceTagMappingList[] | select( .ResourceARN | contains("first"))' | jq '.ResourceARN'
