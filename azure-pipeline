@@ -1,3 +1,12 @@
+Pipeline.Workspace = /home/unix/myagent01/_work/15
+build.artifactstagingdirectory = /home/unix/myagent01/_work/15/a
+System.DefaultWorkingDirectory = /home/unix/myagent01/_work/15/s
+
+
+
+
+
+
 "name": "[format('{0}/{1}', parameters('dbServerName'), parameters('databaseName'))]"
 https://gist.github.com/PrakashRajanSakthivel/17cca682ec0aba049561975142e828f7
 
