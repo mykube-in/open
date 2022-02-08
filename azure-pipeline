@@ -177,6 +177,9 @@ Note: Deleting a pipeline run will result in the deletion of all Artifacts assoc
 
 
 
+${{ if eq(variables['Build.SourceBranchName'], 'master') }}: 
+    stageName: prod
+
 
 
 
