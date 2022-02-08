@@ -1,3 +1,5 @@
+https://www.middlewareinventory.com/blog/terraform-create-multiple-ec2-different-config/
+
 https://thomasthornton.cloud/
 
 https://www.drewlearnscloud.blog/lab1 ,2 , 3
