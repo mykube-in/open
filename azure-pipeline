@@ -37,10 +37,57 @@ unix@ubuntu-devops-agent-server:~/myagent01/_work$
 
 
 
+
 Pipeline.Workspace = /home/unix/myagent01/_work/15
 build.artifactstagingdirectory = /home/unix/myagent01/_work/15/a
 System.DefaultWorkingDirectory = /home/unix/myagent01/_work/15/s
 /home/unix/myagent01/_work/15/       drop/tfplan.output --> artifact downloaded on this dir
+
+
+
+
+
+Then after first run 
+              - task: TerraformTaskV2@2
+                displayName: tf init
+                inputs:
+                  provider: 'azurerm'
+                  command: 'init'
+                  workingDirectory: '$(System.DefaultWorkingDirectory)/$(rootdir)/'
+                  backendServiceArm: 'conn-to-khoj'
+                  backendAzureRmResourceGroupName: 'rg_analytics_base_infra'
+                  backendAzureRmStorageAccountName: 'storageanalyticsbase'
+                  backendAzureRmContainerName: 'tfstate'
+                  backendAzureRmKey: 'dev-terraform.tfstate'
+dev-terraform.tfstate created in Storage
+{
+  "version": 4,
+  "terraform_version": "1.1.5",
+  "serial": 0,
+  "lineage": "58249570-d5b6-af2f-9d84-571b4b984d85",
+  "outputs": {},
+  "resources": []
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
