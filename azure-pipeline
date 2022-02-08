@@ -91,7 +91,10 @@ dev-terraform.tfstate created in Storage
 
 
 How to use invited commas in pipeline
-script: 'ls -altr ''$(System.DefaultWorkingDirectory)/$(rootdir)/'''
+              - task: Bash@3
+                inputs:
+                  targetType: 'inline'
+                  script: 'ls -altr ''$(System.DefaultWorkingDirectory)/$(rootdir)/'''
 
 
 
