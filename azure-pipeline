@@ -1,6 +1,7 @@
 Pipeline.Workspace = /home/unix/myagent01/_work/15
 build.artifactstagingdirectory = /home/unix/myagent01/_work/15/a
 System.DefaultWorkingDirectory = /home/unix/myagent01/_work/15/s
+/home/unix/myagent01/_work/15/drop/   tfplan.output --> artifact downloaded on this dir
 
 
 
