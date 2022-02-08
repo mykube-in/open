@@ -1,3 +1,38 @@
+Dir Structure after first run on agent server which contain one task of installing terraform
+
+
+unix@ubuntu-devops-agent-server:~/myagent01/_work$ tree 1
+1
+├── TestResults
+├── a
+├── b
+└── s
+    └── SimpleTFDemo
+        ├── Pipeline
+        │   └── SimpleTFDemo01-azure-pipeline.yml
+        ├── main.tf
+        ├── terraform.tfvars
+        └── variables.tf
+
+6 directories, 4 files
+unix@ubuntu-devops-agent-server:
+
+
+
+unix@ubuntu-devops-agent-server:~/myagent01/_work$ tree _tool
+_tool
+└── terraform
+    └── 1.1.5
+        ├── x64
+        │   └── terraform
+        └── x64.complete
+
+3 directories, 2 files
+unix@ubuntu-devops-agent-server:~/myagent01/_work$
+
+
+
+
 Pipeline.Workspace = /home/unix/myagent01/_work/15
 build.artifactstagingdirectory = /home/unix/myagent01/_work/15/a
 System.DefaultWorkingDirectory = /home/unix/myagent01/_work/15/s
