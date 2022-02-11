@@ -3,7 +3,7 @@ https://stackoverflow.com/questions/57804406/how-can-i-create-multiple-vms-throu
 
 https://stackoverflow.com/questions/40542297/need-to-create-multile-vms-in-azure-through-terraform
 
-
+https://www.codit.eu/blog/using-yaml-templates-to-reduce-duplication-in-azure-pipelines/
 
 https://blog.gruntwork.io/terraform-tips-tricks-loops-if-statements-and-gotchas-f739bbae55f9
 https://itnext.io/how-to-integrate-aws-secret-manager-to-azure-devops-pipeline-1aafd59f4869
@@ -15,3 +15,4 @@ https://www.drewlearnscloud.blog/lab1 ,2 , 3
 https://www.drewlearnscloud.blog/azure-security1
 
 https://www.drewlearnscloud.blog/cloud-shell
+https://github.com/mykube-in/open/blob/main/must.txt
