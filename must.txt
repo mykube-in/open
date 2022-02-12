@@ -16,3 +16,6 @@ https://www.drewlearnscloud.blog/azure-security1
 
 https://www.drewlearnscloud.blog/cloud-shell
 https://github.com/mykube-in/open/blob/main/must.txt
+
+
+https://medium.com/@lchies/deploying-infrastructure-on-cloud-using-ansible-e-azure-devops-900f91ce4f26
