@@ -1,1 +1,0 @@
-sfdisk -d /dev/sda | sfdisk -f /dev/sdc

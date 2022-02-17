@@ -1,0 +1,252 @@
+Suse12 SP5 server in Azure Clould with one extra disk of 32GB (/dev/sdc) and root is 30GB (/dev/sda)
+suse12sp5-testvm:~ # df -h
+Filesystem      Size  Used Avail Use% Mounted on
+devtmpfs        444M  8.0K  444M   1% /dev
+tmpfs           458M     0  458M   0% /dev/shm
+tmpfs           458M   14M  444M   3% /run
+tmpfs           458M     0  458M   0% /sys/fs/cgroup
+/dev/sda4        29G  2.5G   27G   9% /
+/dev/sda3      1014M   88M  927M   9% /boot
+/dev/sda2       512M  1.1M  511M   1% /boot/efi
+/dev/sdb1       3.9G   16M  3.7G   1% /mnt
+tmpfs            92M     0   92M   0% /run/user/1000
+suse12sp5-testvm:~ # fdisk -l  | grep "/dev/sd[a,c]"
+Disk /dev/sda: 30 GiB, 32212254720 bytes, 62914560 sectors
+/dev/sda1     2048     6143     4096    2M BIOS boot
+/dev/sda2     6144  1054719  1048576  512M EFI System
+/dev/sda3  1054720  3151871  2097152    1G Linux filesystem
+/dev/sda4  3151872 62914526 59762655 28.5G Linux filesystem
+Disk /dev/sdc: 32 GiB, 34359738368 bytes, 67108864 sectors
+suse12sp5-testvm:~ #
+suse12sp5-srv:/boot/grub2 # pwd
+/boot/grub2
+suse12sp5-srv:/boot/grub2 # cp grub.cfg grub.cfg.UUID.orignal
+
+
+
+Lets first make one change in base OS which is required for LVM to work.
+suse12sp5-testvm:~ # cat /etc/lvm/lvm.conf | grep use_lvmetad
+        # See the use_lvmetad comment for a special case regarding filters.
+        #     This is incompatible with lvmetad. If use_lvmetad is enabled,
+        # Configuration option global/use_lvmetad.
+        # while use_lvmetad was disabled, it must be stopped, use_lvmetad
+        use_lvmetad = 1
+suse12sp5-testvm:~ # sed -i 's/use_lvmetad = 1/use_lvmetad = 0/g' /etc/lvm/lvm.conf
+suse12sp5-testvm:~ # cat /etc/lvm/lvm.conf | grep use_lvmetad
+        # See the use_lvmetad comment for a special case regarding filters.
+        #     This is incompatible with lvmetad. If use_lvmetad is enabled,
+        # Configuration option global/use_lvmetad.
+        # while use_lvmetad was disabled, it must be stopped, use_lvmetad
+        use_lvmetad = 0
+suse12sp5-testvm:~ #
+Note: Make this change else vgscan will give error coz base machine does not have lvm at present. 
+vgscan WARNING: Failed to connect to lvmetad. Falling back to device scanning.
+Reading all physical volumes.  This may take a while...
+Found volume group "vg_new_root" using metadata type lvm2
+
+
+
+Convert /boot/grub2/grub.cfg using /boot/grub2/grub.cfg
+suse12sp5-testvm:~ # cat /boot/grub2/grub.cfg | grep vmlinuz-4.12.14-16.85-azure
+        $linux  /vmlinuz-4.12.14-16.85-azure root=UUID=2aeede7b-b8e0-406d-a7c6-f9f8bf9a9bdf rw  USE_BY_UUID_DEVICE_NAMES=1 earlyprintk=ttyS0 console=ttyS0 rootdelay=300 multipath=off net.ifnames=0 dis_ucode_ldr scsi_mod.use_blk_mq=1
+                $linux  /vmlinuz-4.12.14-16.85-azure root=UUID=2aeede7b-b8e0-406d-a7c6-f9f8bf9a9bdf rw  USE_BY_UUID_DEVICE_NAMES=1 earlyprintk=ttyS0 console=ttyS0 rootdelay=300 multipath=off net.ifnames=0 dis_ucode_ldr scsi_mod.use_blk_mq=1
+                $linux  /vmlinuz-4.12.14-16.85-azure root=UUID=2aeede7b-b8e0-406d-a7c6-f9f8bf9a9bdf rw
+suse12sp5-testvm:~ #
+suse12sp5-testvm:~ # cat /etc/default/grub | grep GRUB_DISABLE_LINUX_UUID
+#GRUB_DISABLE_LINUX_UUID=true
+suse12sp5-testvm:~ # sed -i 's/#GRUB_DISABLE_LINUX_UUID=true/GRUB_DISABLE_LINUX_UUID=true/g' /etc/default/grub
+suse12sp5-testvm:~ # cat /etc/default/grub | grep GRUB_DISABLE_LINUX_UUID
+GRUB_DISABLE_LINUX_UUID=true
+suse12sp5-testvm:~ # grub2-mkconfig -o /boot/grub2/grub.cfg
+Generating grub configuration file ...
+Found linux image: /boot/vmlinuz-4.12.14-16.85-azure
+Found initrd image: /boot/initrd-4.12.14-16.85-azure
+done
+suse12sp5-testvm:~ # cat /boot/grub2/grub.cfg | grep vmlinuz-4.12.14-16.85-azure
+        linux   /vmlinuz-4.12.14-16.85-azure root=/dev/sda4  USE_BY_UUID_DEVICE_NAMES=1 earlyprintk=ttyS0 console=ttyS0 rootdelay=300 multipath=off net.ifnames=0 dis_ucode_ldr scsi_mod.use_blk_mq=1
+                linux   /vmlinuz-4.12.14-16.85-azure root=/dev/sda4  USE_BY_UUID_DEVICE_NAMES=1 earlyprintk=ttyS0 console=ttyS0 rootdelay=300 multipath=off net.ifnames=0 dis_ucode_ldr scsi_mod.use_blk_mq=1
+                linux   /vmlinuz-4.12.14-16.85-azure root=/dev/sda4
+suse12sp5-testvm:~ #
+
+take reboot.
+suse12sp5-testvm:~ # reboot
+
+
+copy partition table , create vg an lv , copy data
+suse12sp5-testvm:~ # sfdisk -d /dev/sda | sfdisk -f /dev/sdc
+suse12sp5-testvm:~ # mount | grep /dev/sda
+/dev/sda4 on / type xfs (rw,relatime,attr2,inode64,noquota)
+/dev/sda3 on /boot type xfs (rw,relatime,attr2,inode64,noquota)
+/dev/sda2 on /boot/efi type vfat (rw,relatime,fmask=0022,dmask=0022,codepage=437,iocharset=iso8859-1,shortname=mixed,errors=remount-ro)
+suse12sp5-testvm:~ # pvcreate /dev/sdc4
+suse12sp5-testvm:~ # vgcreate vg_new_root /dev/sdc4
+suse12sp5-testvm:~ # lvcreate -L 28G -n lv0 vg_new_root
+suse12sp5-testvm:~ # mkfs.ext4 /dev/vg_new_root/lv0
+suse12sp5-testvm:~ # mkdir /mnt/NEW_ROOT_PARTITION
+suse12sp5-testvm:~ # mount /dev/vg_new_root/lv0  /mnt/NEW_ROOT_PARTITION
+suse12sp5-testvm:~ # tar -cvpf - --one-file-system --acls --xattrs --selinux / | ( cd /mnt/NEW_ROOT_PARTITION; tar xf -)
+Note: --one-file-system - Do not include files on a different filesystem. If you want other filesystems, such as a /home partition, or external media mounted in /media backed up, you either need to back them up separately, or omit this flag.
+
+
+
+copy /dev to new partition 
+suse12sp5-testvm:~ # ls /mnt/NEW_ROOT_PARTITION/dev
+suse12sp5-testvm:~ # cp -aux /dev /mnt/NEW_ROOT_PARTITION/
+
+
+
+Change fstab in new disk
+suse12sp5-testvm:~ # cat /mnt/NEW_ROOT_PARTITION/etc/fstab
+UUID=2aeede7b-b8e0-406d-a7c6-f9f8bf9a9bdf / xfs defaults 0 0
+UUID=888d75a5-3d0e-4e97-bc31-aab5bbe957d7 /boot xfs defaults 0 0
+UUID=2185-FF7E /boot/efi vfat defaults 0 0
+/dev/disk/cloud/azure_resource-part1    /mnt    auto    defaults,nofail,x-systemd.requires=cloud-init.service,comment=cloudconfig    
+suse12sp5-testvm:~ # sed -i 's/UUID=2aeede7b-b8e0-406d-a7c6-f9f8bf9a9bdf/\/dev\/vg_new_root\/lv0/g' /mnt/NEW_ROOT_PARTITION/etc/fstab
+suse12sp5-testvm:~ # cat /mnt/NEW_ROOT_PARTITION/etc/fstab
+/dev/vg_new_root/lv0 / xfs defaults 0 0
+UUID=888d75a5-3d0e-4e97-bc31-aab5bbe957d7 /boot xfs defaults 0 0
+UUID=2185-FF7E /boot/efi vfat defaults 0 0
+/dev/disk/cloud/azure_resource-part1    /mnt    auto    defaults,nofail,x-systemd.requires=cloud-init.service,comment=cloudconfig       0       2
+
+
+
+
+
+
+suse12sp5-testvm:~ # mount --bind /dev /mnt/NEW_ROOT_PARTITION/dev
+suse12sp5-testvm:~ # chroot /mnt/NEW_ROOT_PARTITION
+suse12sp5-testvm:/ # mount -t proc /proc /proc
+suse12sp5-testvm:/ # mount -t sysfs /sys /sys
+
+
+
+
+
+
+suse12sp5-testvm:/ # vgscan
+  Reading all physical volumes.  This may take a while...
+  Found volume group "vg_new_root" using metadata type lvm2
+suse12sp5-testvm:/ # vgchange -a y vg_new_root
+  1 logical volume(s) in volume group "vg_new_root" now active
+suse12sp5-testvm:/ # cd /boot
+suse12sp5-testvm:/boot # ls
+suse12sp5-testvm:/boot # mkdir /boot/grub2
+suse12sp5-testvm:/boot # mkinitrd -v /boot/initrd-`uname -r`.lvm.img `uname -r`
+suse12sp5-testvm:/boot # ls
+grub2  initrd-4.12.14-16.85-azure.lvm.img
+suse12sp5-testvm:/boot # cd grub2
+suse12sp5-testvm:/boot/grub2 # ls
+grub.cfg  grubenv
+suse12sp5-testvm:/boot/grub2#
+suse12sp5-testvm:/ # umount /sys
+suse12sp5-testvm:/ # umount /proc
+suse12sp5-testvm:/ # exit
+exit
+suse12sp5-testvm:~ #
+
+
+
+
+
+suse12sp5-testvm:~ # mv /mnt/NEW_ROOT_PARTITION/boot/initrd-`uname -r`.lvm.img /boot
+suse12sp5-testvm:~ # ls -ltr /boot/init*
+lrwxrwxrwx 1 root root       26 Jan 26 07:02 /boot/initrd -> initrd-4.12.14-16.85-azure
+-rw------- 1 root root 21907252 Jan 26 07:03 /boot/initrd-4.12.14-16.85-azure
+-rw------- 1 root root 12336916 Feb 17 09:19 /boot/initrd-4.12.14-16.85-azure.lvm.img
+suse12sp5-testvm:~ 
+now edit /boot/grub2/grub.cfg and change root= entry 
+and also initrd  /initrd-4.12.14-16.85-azure.lvm.img
+###############################################################################################
+#                echo    'Loading Linux 4.12.14-16.85-azure ...'#
+#                linux   /vmlinuz-4.12.14-16.85-azure root=/dev/vg_new_root/lv0
+#                echo    'Loading initial ramdisk ...'
+#               initrd  /initrd-4.12.14-16.85-azure.lvm.img
+###############################################################################################        }
+suse12sp5-testvm:~ # reboot.
+khojadmin@suse12sp5-testvm:~> df -h
+Filesystem                   Size  Used Avail Use% Mounted on
+devtmpfs                     449M     0  449M   0% /dev
+tmpfs                        458M     0  458M   0% /dev/shm
+tmpfs                        458M  7.4M  450M   2% /run
+tmpfs                        458M     0  458M   0% /sys/fs/cgroup
+/dev/mapper/vg_new_root-lv0   28G  2.5G   26G   9% /
+/dev/sda3                   1014M  100M  915M  10% /boot
+/dev/sda2                    512M  1.1M  511M   1% /boot/efi
+/dev/sdb1                    3.9G   16M  3.7G   1% /mnt
+tmpfs                         92M     0   92M   0% /run/user/1000
+khojadmin@suse12sp5-testvm:~>
+
+suse12sp5-testvm:~ # vgs
+  VG          #PV #LV #SN Attr   VSize  VFree
+  vg_new_root   1   1   0 wz--n- 28.49g 504.00m
+suse12sp5-testvm:~ # lvs --all --segments -o +devices
+  LV   VG          Attr       #Str Type   SSize  Devices
+  lv0  vg_new_root -wi-ao----    1 linear 28.00g /dev/sdc4(0)
+suse12sp5-testvm:~ # pvcreate /dev/sda4
+  Physical volume "/dev/sda4" successfully created.
+suse12sp5-testvm:~ # pvs -o+pv_used
+  PV         VG          Fmt  Attr PSize  PFree   Used
+  /dev/sda4              lvm2 ---  28.50g  28.50g     0
+  /dev/sdc4  vg_new_root lvm2 a--  28.49g 504.00m 28.00g
+suse12sp5-testvm:~ # vgextend vg_new_root /dev/sda4
+  Volume group "vg_new_root" successfully extended
+suse12sp5-srv:~ # pvs -o+pv_used
+  PV         VG          Fmt  Attr PSize  PFree   Used
+  /dev/sda4  vg_new_root lvm2 a--  28.49g  28.49g     0
+  /dev/sdc4  vg_new_root lvm2 a--  28.49g 504.00m 28.00g
+suse12sp5-srv:~ #
+suse12sp5-srv:~ # pvmove /dev/sdc4
+  /run/lvm/lvmpolld.socket: connect failed: No such file or directory
+  WARNING: Failed to connect to lvmpolld. Proceeding with polling without using lvmpolld.
+  WARNING: Check global/use_lvmpolld in lvm.conf or the lvmpolld daemon state.
+  /dev/sdc4: Moved: 0.01%
+  /dev/sdc4: Moved: 2.54%
+  /dev/sdc4: Moved: 5.01%
+  /dev/sdc4: Moved: 7.53%
+  /dev/sdc4: Moved: 9.99%
+  /dev/sdc4: Moved: 12.50%
+  /dev/sdc4: Moved: 14.82%
+  /dev/sdc4: Moved: 17.37%
+  /dev/sdc4: Moved: 19.73%
+  /dev/sdc4: Moved: 22.20%
+  /dev/sdc4: Moved: 24.61%
+
+suse12sp5-testvm:~ # pvs -o+pv_used
+  PV         VG          Fmt  Attr PSize  PFree   Used
+  /dev/sda4  vg_new_root lvm2 a--  28.49g 504.00m 28.00g
+  /dev/sdc4  vg_new_root lvm2 a--  28.49g 504.00m 28.00g
+suse12sp5-testvm:~ #
+suse12sp5-testvm:~ # lvs -a -o +devices
+  LV        VG          Attr       LSize  Pool Origin Data%  Meta%  Move      Log Cpy%Sync Convert Devices
+  lv0       vg_new_root -wI-ao---- 28.00g                                                          pvmove0(0)
+  [pvmove0] vg_new_root p-C-aom--- 28.00g                           /dev/sdc4     24.96            /dev/sdc4(0),/dev/sda4(0)
+suse12sp5-testvm:~ #
+suse12sp5-testvm:~ # lvs -a -o +devices
+  LV        VG          Attr       LSize  Pool Origin Data%  Meta%  Move      Log Cpy%Sync Convert Devices
+  lv0       vg_new_root -wI-ao---- 28.00g                                                          pvmove0(0)
+  [pvmove0] vg_new_root p-C-aom--- 28.00g                           /dev/sdc4     100.00           /dev/sdc4(0),/dev/sda4(0)
+suse12sp5-testvm:~ #
+But Afterreboot sync again started 
+suse12sp5-testvm:~ # lvs -a -o +devices
+  LV        VG          Attr       LSize  Pool Origin Data%  Meta%  Move      Log Cpy%Sync Convert Devices
+  lv0       vg_new_root -wI-ao---- 28.00g                                                          pvmove0(0)
+  [pvmove0] vg_new_root p-C-aom--- 28.00g                           /dev/sdc4     6.99             /dev/sdc4(0),/dev/sda4(0)
+suse12sp5-testvm:~ #
+suse12sp5-testvm:/boot/grub2 # pvmove /dev/sdc4
+  Detected pvmove in progress for /dev/sdc4.
+  /run/lvm/lvmpolld.socket: connect failed: No such file or directory
+  WARNING: Failed to connect to lvmpolld. Proceeding with polling without using lvmpolld.
+  WARNING: Check global/use_lvmpolld in lvm.conf or the lvmpolld daemon state.
+  /dev/sdc4: Moved: 100.00%
+suse12sp5-testvm:/boot/grub2 # pvmove /dev/sdc4
+  No data to move for vg_new_root.
+suse12sp5-testvm:/boot/grub2 # lvs -a -o +devices
+  LV   VG          Attr       LSize  Pool Origin Data%  Meta%  Move Log Cpy%Sync Convert Devices
+  lv0  vg_new_root -wi-ao---- 28.00g                                                     /dev/sda4(0)
+suse12sp5-testvm:/boot/grub2 #
+suse12sp5-testvm:/boot/grub2 # vgreduce vg_new_root /dev/sdc4
+  Removed "/dev/sdc4" from volume group "vg_new_root"
+suse12sp5-testvm:/boot/grub2 #
+suse12sp5-testvm:/etc/default # reboot
+
+
