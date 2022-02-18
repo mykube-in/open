@@ -1,3 +1,7 @@
+#######################################################################################################################################################################################
+Bring Root Disk in LVMControl
+#######################################################################################################################################################################################
+
 Suse12 SP5 server in Azure Clould with one extra disk of 32GB (/dev/sdc) and root is 30GB (/dev/sda)
 suse12sp5-testvm:~ # df -h
 Filesystem      Size  Used Avail Use% Mounted on
@@ -249,4 +253,264 @@ suse12sp5-testvm:/boot/grub2 # vgreduce vg_new_root /dev/sdc4
 suse12sp5-testvm:/boot/grub2 #
 suse12sp5-testvm:/etc/default # reboot
 
+#######################################################################################################################################################################################
+MoveRootDiskOutOfLVMControl
+#######################################################################################################################################################################################
+
+Problem: Root Disk in control of LVM Due to which entry in /boot/grub2/grub.cfg have root=/dev/vg_new_root/lv0 and 
+because of this ASR is not working. We created Similar Server SUSE 12 SP5 in Azure Clould enviroment and performed 
+below mentioned Steps. 
+
+
+1. Disk with root VG.
+suse12sp5-srv:~ # lsblk
+NAME                MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sda                   8:0    0   30G  0 disk
+├─sda1                8:1    0    2M  0 part
+├─sda2                8:2    0  512M  0 part /boot/efi
+├─sda3                8:3    0    1G  0 part /boot
+└─sda4                8:4    0 28.5G  0 part
+  └─vg_new_root-lv0 254:0    0   28G  0 lvm  /
+sdb                   8:16   0    4G  0 disk
+└─sdb1                8:17   0    4G  0 part /mnt
+suse12sp5-srv:~ #
+
+2. Validate entry in root=/dev/vg_new_root/lv0
+suse12sp5-srv:/boot/grub2 # cat grub.cfg | grep root=/dev
+        linux   /vmlinuz-4.12.14-16.85-azure root=/dev/vg_new_root/lv0  USE_BY_UUID_DEVICE_NAMES=1 earlyprintk=ttyS0 console=ttyS0 rootdelay=300 multipath=off net.ifnames=0 dis_ucode_ldr scsi_mod.use_blk_mq=1
+                linux   /vmlinuz-4.12.14-16.85-azure root=/dev/vg_new_root/lv0  USE_BY_UUID_DEVICE_NAMES=1 earlyprintk=ttyS0 console=ttyS0 rootdelay=300 multipath=off net.ifnames=0 dis_ucode_ldr scsi_mod.use_blk_mq=1
+                linux   /vmlinuz-4.12.14-16.85-azure root=/dev/vg_new_root/lv0
+suse12sp5-srv:/boot/grub2 #
+
+
+3. Umount all the file System except the basic OS file systems. 
+4. Add Disk of same size as of sda4 . my sda4 is 28GB . So i am adding 32GB disk to the server i.e /dev/sdc.
+suse12sp5-srv:/boot/grub2 # lsblk
+NAME                MAJ:MIN RM  SIZE RO TYPE MOUNTPOINT
+sda                   8:0    0   30G  0 disk
+├─sda1                8:1    0    2M  0 part
+├─sda2                8:2    0  512M  0 part /boot/efi
+├─sda3                8:3    0    1G  0 part /boot
+└─sda4                8:4    0 28.5G  0 part
+  └─vg_new_root-lv0 254:0    0   28G  0 lvm  /
+sdb                   8:16   0    4G  0 disk
+└─sdb1                8:17   0    4G  0 part /mnt
+sdc                   8:32   0   32G  0 disk
+suse12sp5-srv:/boot/grub2 #
+
+5. Copy Partition Table from /dev/sda to /dev/sdc
+suse12sp5-srv:/boot/grub2 # sfdisk -d /dev/sda | sfdisk -f /dev/sdc
+
+6. bring this /dev/sdc4 in LVM control and add to VG.
+suse12sp5-srv:/boot/grub2 # pvcreate /dev/sdc4
+  Physical volume "/dev/sdc4" successfully created.
+suse12sp5-srv:/boot/grub2 # vgextend vg_new_root /dev/sdc4
+  Volume group "vg_new_root" successfully extended
+suse12sp5-srv:/boot/grub2 #
+
+7. /dev/sda4 used is 28G and newly added disk /dev/sdc4 is 0GB used.Move the physical extends to new disk so that /dev/sda4 should be free and can be brought out of LVM control. pvmove operation will take some time.
+Note: incase system reboot when pvmove is in progress then dont worry .It will resume once server is up.
+suse12sp5-srv:/boot/grub2 # pvs -o+pv_used
+  PV         VG          Fmt  Attr PSize  PFree   Used
+  /dev/sda4  vg_new_root lvm2 a--  28.49g 504.00m 28.00g
+  /dev/sdc4  vg_new_root lvm2 a--  28.49g  28.49g     0
+suse12sp5-srv:/boot/grub2 # pvmove /dev/sda4
+  /dev/sda4: Moved: 0.00%
+  /dev/sda4: Moved: 1.07%
+....go till 100%
+During Movement of extents.
+suse12sp5-srv:~ # lvs -a -o +devices
+  LV        VG          Attr       LSize  Pool Origin Data%  Meta%  Move      Log Cpy%Sync Convert Devices
+  lv0       vg_new_root -wI-ao---- 28.00g                                                          pvmove0(0)
+  [pvmove0] vg_new_root p-C-aom--- 28.00g                           /dev/sda4     14.97            /dev/sda4(0),/dev/sdc4(0)
+After Movement of extents.
+suse12sp5-srv:~ # lvs -a -o +devices
+  LV   VG          Attr       LSize  Pool Origin Data%  Meta%  Move Log Cpy%Sync Convert Devices
+  lv0  vg_new_root -wi-ao---- 28.00g                                                     /dev/sdc4(0)
+suse12sp5-srv:~ #
+
+8. To validate disk is free. And then bring it out of VG.
+suse12sp5-srv:~ # pvmove /dev/sda4
+  No data to move for vg_new_root.
+suse12sp5-srv:~ # vgreduce vg_new_root /dev/sda4
+  Removed "/dev/sda4" from volume group "vg_new_root"
+suse12sp5-srv:~ #
+
+9. Lay FileSystem on /dev/sda4 and mount it on folder.
+suse12sp5-srv:~ # mkfs.xfs -f /dev/sda4
+meta-data=/dev/sda4              isize=512    agcount=4, agsize=1867583 blks
+         =                       sectsz=4096  attr=2, projid32bit=1
+         =                       crc=1        finobt=0, sparse=0, rmapbt=0, reflink=0
+data     =                       bsize=4096   blocks=7470331, imaxpct=25
+         =                       sunit=0      swidth=0 blks
+naming   =version 2              bsize=4096   ascii-ci=0 ftype=1
+log      =internal log           bsize=4096   blocks=3647, version=2
+         =                       sectsz=4096  sunit=1 blks, lazy-count=1
+realtime =none                   extsz=4096   blocks=0, rtextents=0
+suse12sp5-srv:~ # mkdir /mnt/NEW_ROOT_PARTITION
+suse12sp5-srv:~ # mount /dev/sda4 /mnt/NEW_ROOT_PARTITION
+
+
+
+10. Change your directory to / and run this command.(make sure app related volumes mount ppoints are not mounted).
+This will create script 1.sh . Run it.
+suse12sp5-srv:~ # cd /
+suse12sp5-srv:/ # ls -ltr | awk '{print $9}'|egrep -v "boot|proc|lost\+found|sys|mnt" | grep -v ^$ |awk '{print "tar cvf /mnt/NEW_ROOT_PARTITION/"$0".tar ./"$0}' > 1.sh
+suse12sp5-srv:/ # cat 1.sh
+tar cvf /mnt/NEW_ROOT_PARTITION/selinux.tar ./selinux
+tar cvf /mnt/NEW_ROOT_PARTITION/srv.tar ./srv
+tar cvf /mnt/NEW_ROOT_PARTITION/usr.tar ./usr
+tar cvf /mnt/NEW_ROOT_PARTITION/lib64.tar ./lib64
+tar cvf /mnt/NEW_ROOT_PARTITION/bin.tar ./bin
+tar cvf /mnt/NEW_ROOT_PARTITION/sbin.tar ./sbin
+tar cvf /mnt/NEW_ROOT_PARTITION/lib.tar ./lib
+tar cvf /mnt/NEW_ROOT_PARTITION/grub2.tar ./grub2
+tar cvf /mnt/NEW_ROOT_PARTITION/var.tar ./var
+tar cvf /mnt/NEW_ROOT_PARTITION/home.tar ./home
+tar cvf /mnt/NEW_ROOT_PARTITION/opt.tar ./opt
+tar cvf /mnt/NEW_ROOT_PARTITION/etc.tar ./etc
+tar cvf /mnt/NEW_ROOT_PARTITION/dev.tar ./dev
+tar cvf /mnt/NEW_ROOT_PARTITION/root.tar ./root
+tar cvf /mnt/NEW_ROOT_PARTITION/tmp.tar ./tmp
+tar cvf /mnt/NEW_ROOT_PARTITION/run.tar ./run
+tar cvf /mnt/NEW_ROOT_PARTITION/1.sh.tar ./1.sh
+suse12sp5-srv:/ # sh 1.sh > 1.out
+tar: ./var/opt/omi/run/omiserver.sock: socket ignored
+tar: ./etc/opt/omi/conf/sockets/omi_NUCoSdzhv: socket ignored
+tar: ./run/dbus/system_bus_socket: socket ignored
+tar: ./run/user/1000/systemd/private: socket ignored
+tar: ./run/user/1000/systemd/notify: socket ignored
+tar: ./run/nscd/socket: socket ignored
+tar: ./run/lvm/lvmetad.socket: socket ignored
+tar: ./run/udev/control: socket ignored
+tar: ./run/systemd/private: socket ignored
+tar: ./run/systemd/journal/syslog: socket ignored
+tar: ./run/systemd/journal/socket: socket ignored
+tar: ./run/systemd/journal/stdout: socket ignored
+tar: ./run/systemd/journal/dev-log: socket ignored
+tar: ./run/systemd/cgroups-agent: socket ignored
+tar: ./run/systemd/notify: socket ignored
+suse12sp5-srv:/ #
+Note: Review msg , socket error can be ignored.
+
+11. cd /mnt/NEW_ROOT_PARTITION and extract all tar files.
+suse12sp5-srv:/ # cd /mnt/NEW_ROOT_PARTITION
+suse12sp5-srv:/mnt/NEW_ROOT_PARTITION # for file in *.tar; do echo "tar xvf $file"; done > 1.sh
+suse12sp5-srv:/mnt/NEW_ROOT_PARTITION # cat 1.sh
+tar xvf 1.sh.tar
+tar xvf bin.tar
+tar xvf dev.tar
+tar xvf etc.tar
+tar xvf grub2.tar
+tar xvf home.tar
+tar xvf lib.tar
+tar xvf lib64.tar
+tar xvf opt.tar
+tar xvf root.tar
+tar xvf run.tar
+tar xvf sbin.tar
+tar xvf selinux.tar
+tar xvf srv.tar
+tar xvf tmp.tar
+tar xvf usr.tar
+tar xvf var.tar
+suse12sp5-srv:/mnt/NEW_ROOT_PARTITION # sh 1.sh > 1.out
+suse12sp5-srv:/mnt/NEW_ROOT_PARTITION #
+
+12. change / FS entry to /dev/sda4 in  /mnt/NEW_ROOT_PARTITION/etc/fstab
+suse12sp5-srv:/mnt/NEW_ROOT_PARTITION # cat /mnt/NEW_ROOT_PARTITION/etc/fstab
+/dev/sda4 / xfs defaults 0 0
+UUID=888d75a5-3d0e-4e97-bc31-aab5bbe957d7 /boot xfs defaults 0 0
+UUID=2185-FF7E /boot/efi vfat defaults 0 0
+/dev/disk/cloud/azure_resource-part1    /mnt auto       defaults,nofail,x-systemd.requires=cloud-init.service,comment=cloudconfig  0    2
+suse12sp5-srv:/mnt/NEW_ROOT_PARTITION #
+
+13. change to root directory and bind dev and chroot. 
+suse12sp5-srv:~ # cd /
+suse12sp5-srv:/ # mount --bind /dev /mnt/NEW_ROOT_PARTITION/dev
+suse12sp5-srv:/ # chroot /mnt/NEW_ROOT_PARTITION
+suse12sp5-srv:/ # mkdir /sys ; mkdir /proc
+suse12sp5-srv:/ # mount -t sysfs /sys /sys; mount -t proc /proc /proc
+
+
+14. create /boot/grub2 and compile kernel file. 
+suse12sp5-srv:/ # mkdir -p /boot/grub2
+suse12sp5-srv:/ # mkinitrd -v /boot/initrd-`uname -r`.normal.img `uname -r`
+Creating initrd: /boot/initrd-4.12.14-16.85-azure.normal.img
+dracut: Executing: /usr/bin/dracut -v --logfile /var/log/YaST2/mkinitrd.log --force /boot/initrd-4.12.14-16.85-azure.normal.img 4.12.14-16.85-azure
+dracut: dracut module 'btrfs' will not be installed, because command 'btrfs' could not be found!
+dracut: dracut module 'dmraid' will not be installed, because command 'dmraid' could not be found!
+suse12sp5-srv:/ # umount /sys
+suse12sp5-srv:/ #  umount /proc
+suse12sp5-srv:/ # exit
+exit
+suse12sp5-srv:/ #
+
+
+15. Move kernel image to /boot directory. (which is on seperate partition)
+suse12sp5-srv:/ # mv /mnt/NEW_ROOT_PARTITION/boot/initrd-`uname -r`.normal.img /boot/
+
+16. edit /boot/grub2/grub.cfg and make entry of /dev/sda4 manually and also change the image name to  initrd-4.12.14-16.85-azure.normal.img which we copied in last step. 
+suse12sp5-srv:/boot/grub2 # cat grub.cfg | egrep "root=/dev|initrd"
+  linux /vmlinuz-4.12.14-16.85-azure root=/dev/sda4  USE_BY_UUID_DEVICE_NAMES=1 earlyprintk=ttyS0 console=ttyS0 rootdelay=300 multipath=off net.ifnames=0 dis_ucode_ldr scsi_mod.use_blk_mq=1
+  initrd /initrd-4.12.14-16.85-azure.normal.img
+    linux /vmlinuz-4.12.14-16.85-azure root=/dev/sda4  USE_BY_UUID_DEVICE_NAMES=1 earlyprintk=ttyS0 console=ttyS0 rootdelay=300 multipath=off net.ifnames=0 dis_ucode_ldr scsi_mod.use_blk_mq=1
+    initrd /initrd-4.12.14-16.85-azure.normal.img
+    linux /vmlinuz-4.12.14-16.85-azure root=/dev/sda4
+    initrd /initrd-4.12.14-16.85-azure.normal.img
+suse12sp5-srv:/boot/grub2 #
+
+
+17.  reboot the server. Login and validate root disk should be out of control of LVM now.
+suse12sp5-srv:/boot/grub2 # reboot
+khojadmin@suse12sp5-srv:~> df -h
+Filesystem      Size  Used Avail Use% Mounted on
+devtmpfs        450M     0  450M   0% /dev
+tmpfs           458M     0  458M   0% /dev/shm
+tmpfs           458M  7.4M  450M   2% /run
+tmpfs           458M     0  458M   0% /sys/fs/cgroup
+/dev/sda4        29G  4.4G   25G  16% /
+/dev/sda3      1014M  109M  906M  11% /boot
+/dev/sda2       512M  1.1M  511M   1% /boot/efi
+/dev/sdb1       3.9G   16M  3.7G   1% /mnt
+tmpfs            92M     0   92M   0% /run/user/1000
+khojadmin@suse12sp5-srv:~>
+
+18. change directory to /boot and now move the image replace it orignal image with the image you created.to be mor
+In production you can take backup on image to be on safer side. ( I did not took backup) 
+suse12sp5-srv:/boot # pwd
+/boot
+suse12sp5-srv:/boot # mv initrd-4.12.14-16.85-azure.normal.img initrd-4.12.14-16.85-azure
+suse12sp5-srv:/boot #
+
+19. Check /etc/default/grub and validate
+GRUB_DISABLE_LINUX_UUID=false
+
+20. regerate the /boot/grub2/grub.cfg file using grub2-mkconfig
+suse12sp5-srv:/etc/default # grub2-mkconfig -o /boot/grub2/grub.cfg
+Generating grub configuration file ...
+Found linux image: /boot/vmlinuz-4.12.14-16.85-azure
+Found initrd image: /boot/initrd-4.12.14-16.85-azure
+done
+suse12sp5-srv:/etc/default #
+
+
+21. Validate /boot/grub2/grub.cfg file (image name and UUID shoould be there)
+
+suse12sp5-srv:/etc/default # cat /boot/grub2/grub.cfg | egrep -i "uuid|initrd" | grep
+-v search
+linux /vmlinuz-4.12.14-16.85-azure root=UUID=8c51e8d5-8836-47eb-b174-63c141df427e
+USE_BY_UUID_DEVICE_NAMES=1 earlyprintk=ttyS0 console=ttyS0 rootdelay=300
+multipath=off net.ifnames=0 dis_ucode_ldr scsi_mod.use_blk_mq=1
+initrd /initrd-4.12.14-16.85-azure
+linux /vmlinuz-4.12.14-16.85-azure root=UUID=8c51e8d5-8836-47eb-b174-63c141df427e
+USE_BY_UUID_DEVICE_NAMES=1 earlyprintk=ttyS0 console=ttyS0 rootdelay=300
+multipath=off net.ifnames=0 dis_ucode_ldr scsi_mod.use_blk_mq=1
+initrd /initrd-4.12.14-16.85-azure
+linux /vmlinuz-4.12.14-16.85-azure root=UUID=8c51e8d5-8836-47eb-b174-63c141df427e
+initrd /initrd-4.12.14-16.85-azure
+suse12sp5-srv:/etc/default #
+
+22. Take final reboot and validate app file systems handover the server once it is up.
+suse12sp5-srv:/etc/default # reboot
 
