@@ -1,4 +1,4 @@
 cloudservices/AzureScriptsShellSmall
 
-
+Set-AzContext -SubscriptionId "ed2b748c-4ac0-4eb5-ad10-79b94864121a"
 New-AzureRmApiManagementContext -ResourceGroupName rg-entsys-dev-eail -ServiceName apim-eail-9990-wrapper-sl-poc
