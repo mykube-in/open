@@ -1,1 +1,4 @@
 cloudservices/AzureScriptsShellSmall
+
+
+New-AzureRmApiManagementContext -ResourceGroupName rg-entsys-dev-eail -ServiceName apim-eail-9990-wrapper-sl-poc
