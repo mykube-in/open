@@ -1,0 +1,4 @@
+#lowercase letters/numbers only
+-join ((48..57) + (97..122) | Get-Random -Count 32 | % {[char]$_})
+# all characters
+-join ((33..126) | Get-Random -Count 32 | % {[char]$_})
