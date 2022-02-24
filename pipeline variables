@@ -1,0 +1,11 @@
+So it's probably a good idea to get a handle on the directory structure used within the pipeline.
+
+\agent_work\1 $(Agent.BuildDirectory)
+\agent_work\1\a $(Build.ArtifactStagingDirectory)
+\agent_work\1\b $(Build.BinariesDirectory)
+\agent_work\1\s $(Build.SourcesDirectory)
+$(Agent.BuildDirectory) where all folders for a given build pipeline are created
+
+$(Build.ArtifactStagingDirectory) artifacts are copied to before being pushed to their destination.
+$(Build.BinariesDirectory) you can use as an output folder for compiled binaries
+$(Build.SourcesDirectory) where your source code files are downloaded
