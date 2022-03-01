@@ -1,4 +1,0 @@
-mkinitrd -v /mnt/initrd-4.12.14-122.74-default.lvm.img 4.12.14-122.74-default
-mkinitrd -v /mnt/initrd-4.12.14-122.77-default.lvm.img 4.12.14-122.77-default
-mkinitrd -v /mnt/initrd-4.12.14-122.83-default.lvm.img 4.12.14-122.83-default
-mkinitrd -v /mnt/initrd-4.12.14-122.91-default.lvm.img 4.12.14-122.91-default
