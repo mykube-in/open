@@ -1,0 +1,5 @@
+# to know data type
+$superSecretObject.PrimaryKey.GetType().Name # to know data type 
+
+# to display Value
+$superSecretObject.PrimaryKey
