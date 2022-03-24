@@ -4,4 +4,5 @@ $superSecretObject.PrimaryKey.GetType().Name # to know data type
 # to display Value
 $superSecretObject.PrimaryKey
 
-az ad sp list --filter "displayName eq 'anynamehere'" --query '[0].objectId' -o tsv
+az ad sp list --filter "displayName eq 'mywebapp'" --query '[0].objectId' -o tsv
+az webapp show -n mywebapp -g $(dp_dev_resource_group_name) --query identity.principalId
