@@ -1,0 +1,5 @@
+az vm run-command invoke -g RGNAME -n VMNAME --command-id RunShellScript --scripts "echo 'username ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers"
+
+az vm run-command invoke -g RGNAME -n VMNAME --command-id RunShellScript --scripts "sed -i '91d' /etc/sudoers"
+
+az vm run-command invoke -g RGNAME -n VMNAME --command-id RunShellScript --scripts "echo 'username ALL=(ALL) NOPASSWD: ALL' >> /etc/sudoers"
