@@ -1,0 +1,76 @@
+varloop.yml
+
+
+---
+  - name: Demonstrating variables in Jinja2 Loops
+    hosts: localhost
+    connection: local
+    vars_files:
+      - vars.yml
+    gather_facts: no
+    tasks:
+      - name: Create the Jinja2 based template
+        template: 
+          src: varloop.j2 
+          dest: ./output.txt
+
+
+
+
+vars.yml
+---
+  people:
+    - name: Amit
+      fav_colour: Blue
+    - name: Gaurav
+      fav_colour: Yellow
+    - name: Raj
+      fav_colour: Blue
+    - name: Sumit
+      fav_colour: Yellow
+    - name: Dinesh
+      fav_colour: Yellow
+    - name: Sheetan
+      fav_colour: Orange
+
+  colours:
+    - name: Blue
+      things:
+        - Sky
+        - Sea
+        - Jeans
+    - name: Yellow
+      things:
+        - Egg yolk
+        - Taxi
+        - Banana
+        - Lemon
+        - Sun
+    - name: Orange
+      things:
+        - Pumpkin
+        - Basketball
+        - Carrots
+        - Oranges
+Footer
+
+
+
+templates/varloop.j2
+{%- for colour in colours -%}
+{{ loop.index }} colour is  is {{ colour.name }}.
+{% set count = [0] %}
+{%- for person in people -%}
+{%- if person.fav_colour == colour.name -%}
+{%- if count.append(count.pop() + 1) -%}{%- endif -%} {# increment count by 1 #}
+{%- endif -%}
+{%- endfor -%}
+{{ count[0] }} number of people have favourite colour {{ colour.name }}. 
+
+And the following are examples of things that are {{ colour.name }}:
+{% for item in colour.things %}
+- {{ item }}
+{% endfor %}
+-----------------------------------------------------------------------------
+{% endfor %}
+
