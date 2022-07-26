@@ -1,0 +1,15 @@
+AnyDesk sesstion break when LID closed for Lenovo Legion 5i
+-------------------------------------------------------------
+
+Open Device Manager
+Expand System Devices 
+Right-Click ACPI Lid
+Click on Properties 
+Click on Driver 
+Click on Update Driver 
+Click on Browse my comptuer for Driver Software 
+Click on Let me pick from a list of available drivers on my computer 
+Uncheck Show Compatible Hardware 
+Click on Standard Display Types 
+Click on Microsoft Basic Display Driver
+Hit next, okay, whatever until it's finished
